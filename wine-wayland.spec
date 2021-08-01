@@ -32,12 +32,12 @@
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 %global version     6.13
-%global release     1
+%global release     2
 
 
 # build with wine-staging patches, see:  https://github.com/wine-staging/wine-staging
 %if 0%{?fedora}
-%global wine_staging 0
+%global wine_staging 1
 %endif
 # 0%%{?fedora}
 
@@ -1649,10 +1649,10 @@ fi
 %{_libdir}/wine/%{winepedir}/wine-dxgi.dll
 %ghost %{_libdir}/wine/%{winesodir}/dxgi.dll.so
 %{_libdir}/wine/%{winesodir}/wine-dxgi.dll.so
-# wayland
-#%%{_libdir}/wine/%%{winepedir}/dxgkrnl.sys
-#%%{_libdir}/wine/%%{winepedir}/dxgmms1.sys
-# end wayland
+%if 0%{?wine_staging}
+%{_libdir}/wine/%{winepedir}/dxgkrnl.sys
+%{_libdir}/wine/%{winepedir}/dxgmms1.sys
+%endif
 %{_libdir}/wine/%{winepedir}/dxva2.dll
 %{_libdir}/wine/%{winepedir}/esent.dll
 %{_libdir}/wine/%{winepedir}/evr.dll
@@ -2073,6 +2073,9 @@ fi
 %{_libdir}/wine/%{winepedir}/wevtsvc.dll
 %{_libdir}/wine/%{winepedir}/wiaservc.dll
 %{_libdir}/wine/%{winepedir}/wimgapi.dll
+%if 0%{?wine_staging}
+%{_libdir}/wine/%{winepedir}/win32k.sys
+%endif
 %{_libdir}/wine/%{winepedir}/win32u.dll
 # wayland
 #%%if 0%%{?wine_staging}
@@ -2082,6 +2085,9 @@ fi
 #%%endif
 # end wayland
 %{_libdir}/wine/%{winepedir}/windows.media.devices.dll
+%if 0%{?wine_staging}
+%{_libdir}/wine/%{winepedir}/windows.networking.connectivity
+%endif
 %{_libdir}/wine/%{winepedir}/windowscodecs.dll
 %{_libdir}/wine/%{winesodir}/windowscodecs.so
 %{_libdir}/wine/%{winepedir}/windowscodecsext.dll
@@ -3133,9 +3139,6 @@ fi
 %{_libdir}/wine/%{winesodir}/wevtsvc.dll.so
 %{_libdir}/wine/%{winesodir}/wiaservc.dll.so
 %{_libdir}/wine/%{winesodir}/wimgapi.dll.so
-# wayland
-#%%{_libdir}/wine/%%{winepedir}/win32k.sys
-# end wayland
 %{_libdir}/wine/%{winesodir}/win32u.dll.so
 # wayland
 #%%if 0%%{?wine_staging}
@@ -3146,7 +3149,7 @@ fi
 # end wayland
 %{_libdir}/wine/%{winesodir}/windows.media.devices.dll.so
 # wayland
-#%%{_libdir}/wine/%%{winesodir}/windows.networking.connectivity.so
+#%%{_libdir}/wine/%%{winesodir}/windows.networking.connectivity
 # end wayland
 %{_libdir}/wine/%{winesodir}/windowscodecs.dll.so
 %{_libdir}/wine/%{winesodir}/windowscodecsext.dll.so
@@ -3448,6 +3451,9 @@ fi
 %endif
 
 %changelog
+* Sun Aug 01 2021 Patrick Laimbock <patrick@laimbock.com> - 6.13-0.2
+- enable staging
+
 * Sun Aug 01 2021 Patrick Laimbock <patrick@laimbock.com> - 6.13-0.1
 - update to the latest wayland branch of 6.13
 
