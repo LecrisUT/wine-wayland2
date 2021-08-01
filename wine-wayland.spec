@@ -1,10 +1,14 @@
+%global debug_package   %{nil}
+
 # Compiling the preloader fails with hardening enabled
 %undefine _hardened_build
 
+#%%define _smp_mflags -j1
+
 %global no64bit   0
 %global winegecko 2.47.2
-%global winemono  6.1.1
-#global _default_patch_fuzz 2
+%global winemono  6.2.0
+%global _default_patch_fuzz 2
 %ifarch %{ix86}
 %global winepedir i386-windows
 %global winesodir i386-unix
@@ -23,12 +27,13 @@
 %endif
 
 # wine-wayland related
-%global gitdate     20210620
-%global commit      47bdc961a3effc4475fe845ebc6be20a6754605c
+%global gitdate     20210801
+%global commit      f50e3c49783f5f636ce44b4cca526001b2c44049
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
-%global version     6.9
-%global release     3
+%global version     6.13
+%global release     1
+
 
 # build with wine-staging patches, see:  https://github.com/wine-staging/wine-staging
 %if 0%{?fedora}
@@ -96,6 +101,15 @@ Patch511:       wine-cjk.patch
 # wine-staging patches
 # pulseaudio-patch is covered by that patch-set, too.
 Source900: https://github.com/wine-staging/wine-staging/archive/v%{version}.tar.gz#/wine-staging-%{version}.tar.gz
+
+# fysnc, futex2 and childwindow patches
+# https://github.com/Frogging-Family/wine-tkg-git/tree/master/wine-tkg-git/wine-tkg-patches/proton
+Patch900:       fsync-unix-staging.patch
+Patch901:       fsync-staging-no_alloc_handle.patch
+Patch902:       fsync_futex2.patch
+# https://bugs.winehq.org/show_bug.cgi?id=45277
+Patch903:       0010-winex11.drv-Use-XPresentPixmap-instead-of-XCopyArea-.patch
+
 %endif
 
 %if !%{?no64bit}
@@ -299,7 +313,7 @@ In Fedora wine is a meta-package which will install everything needed for wine
 to work smoothly. Smaller setups can be achieved by installing some of the
 wine-* sub packages.
 
-%package core
+%package -n wine-core
 Summary:        Wine core package
 Requires(postun): /sbin/ldconfig
 Requires(posttrans):   %{_sbindir}/alternatives
@@ -381,11 +395,11 @@ Requires:       libva
 Obsoletes:      wine-wow < 1.7.35
 Provides:       wine-wow = %{version}-%{release}
 
-%description core
+%description -n wine-core
 Wine core package includes the basic wine stuff needed by all other packages.
 
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
-%package systemd
+%package -n wine-systemd
 Summary:        Systemd config for the wine binfmt handler
 Requires:       systemd >= 23
 BuildArch:      noarch
@@ -393,38 +407,38 @@ Requires(post):  systemd
 Requires(postun): systemd
 Obsoletes:      wine-sysvinit < %{version}-%{release}
 
-%description systemd
+%description -n wine-systemd
 Register the wine binary handler for windows executables via systemd binfmt
 handling. See man binfmt.d for further information.
 %endif
 
 %if 0%{?rhel} == 6
-%package sysvinit
+%package -n wine-sysvinit
 Summary:        SysV initscript for the wine binfmt handler
 BuildArch:      noarch
 Requires(post): /sbin/chkconfig, /sbin/service
 Requires(preun): /sbin/chkconfig, /sbin/service
 
-%description sysvinit
+%description -n wine-sysvinit
 Register the wine binary handler for windows executables via SysV init files.
 %endif
 
-%package filesystem
+%package -n wine-filesystem
 Summary:        Filesystem directories for wine
 BuildArch:      noarch
 
-%description filesystem
+%description -n wine-filesystem
 Filesystem directories and basic configuration for wine.
 
-%package common
+%package -n wine-common
 Summary:        Common files
 Requires:       wine-core = %{version}-%{release}
 BuildArch:      noarch
 
-%description common
+%description -n wine-common
 Common wine files and scripts.
 
-%package desktop
+%package -n wine-desktop
 Summary:        Desktop integration features for wine
 Requires(post): desktop-file-utils >= 0.8
 Requires(postun): desktop-file-utils >= 0.8
@@ -439,11 +453,11 @@ Requires:       wine-sysvinit = %{version}-%{release}
 Requires:       hicolor-icon-theme
 BuildArch:      noarch
 
-%description desktop
+%description -n wine-desktop
 Desktop integration features for wine, including mime-types and a binary format
 handler service.
 
-%package fonts
+%package -n wine-fonts
 Summary:       Wine font files
 BuildArch:     noarch
 # arial-fonts are available with wine-staging patchset, only.
@@ -479,163 +493,163 @@ Requires:      liberation-sans-fonts liberation-serif-fonts liberation-mono-font
 Requires:      liberation-narrow-fonts
 %endif
 
-%description fonts
+%description -n wine-fonts
 %{summary}
 
 %if 0%{?wine_staging}
-%package arial-fonts
+%package -n wine-arial-fonts
 Summary:       Wine Arial font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description arial-fonts
+%description -n wine-arial-fonts
 %{summary}
 %endif
 # 0%%{?wine_staging}
 
-%package courier-fonts
+%package -n wine-courier-fonts
 Summary:       Wine Courier font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description courier-fonts
+%description -n wine-courier-fonts
 %{summary}
 
-%package fixedsys-fonts
+%package -n wine-fixedsys-fonts
 Summary:       Wine Fixedsys font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description fixedsys-fonts
+%description -n wine-fixedsys-fonts
 %{summary}
 
-%package small-fonts
+%package -n wine-small-fonts
 Summary:       Wine Small font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description small-fonts
+%description -n wine-small-fonts
 %{summary}
 
-%package system-fonts
+%package -n wine-system-fonts
 Summary:       Wine System font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description system-fonts
+%description -n wine-system-fonts
 %{summary}
 
 
-%package marlett-fonts
+%package -n wine-marlett-fonts
 Summary:       Wine Marlett font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description marlett-fonts
+%description -n wine-marlett-fonts
 %{summary}
 
 
-%package ms-sans-serif-fonts
+%package -n wine-ms-sans-serif-fonts
 Summary:       Wine MS Sans Serif font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description ms-sans-serif-fonts
+%description -n wine-ms-sans-serif-fonts
 %{summary}
 
 # rhbz#693180
 # http://lists.fedoraproject.org/pipermail/devel/2012-June/168153.html
-%package tahoma-fonts
+%package -n wine-tahoma-fonts
 Summary:       Wine Tahoma font family
 BuildArch:     noarch
 Requires:      wine-filesystem = %{version}-%{release}
 
-%description tahoma-fonts
+%description -n wine-tahoma-fonts
 %{summary}
 Please note: If you want system integration for wine tahoma fonts install the
 wine-tahoma-fonts-system package.
 
-%package tahoma-fonts-system
+%package -n wine-tahoma-fonts-system
 Summary:       Wine Tahoma font family system integration
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 Requires:      wine-tahoma-fonts = %{version}-%{release}
 
-%description tahoma-fonts-system
+%description -n wine-tahoma-fonts-system
 %{summary}
 
 %if 0%{?wine_staging}
-%package times-new-roman-fonts
+%package -n wine-times-new-roman-fonts
 Summary:       Wine Times New Roman font family
 BuildArch:     noarch
 Requires:      wine-filesystem = %{version}-%{release}
 
-%description times-new-roman-fonts
+%description -n wine-times-new-roman-fonts
 %{summary}
 Please note: If you want system integration for wine times new roman fonts install the
 wine-times-new-roman-fonts-system package.
 
-%package times-new-roman-fonts-system
+%package -n wine-times-new-roman-fonts-system
 Summary:       Wine Times New Roman font family system integration
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 Requires:      wine-times-new-roman-fonts = %{version}-%{release}
 
-%description times-new-roman-fonts-system
+%description -n wine-times-new-roman-fonts-system
 %{summary}
 %endif
 
-%package symbol-fonts
+%package -n wine-symbol-fonts
 Summary:       Wine Symbol font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description symbol-fonts
+%description -n wine-symbol-fonts
 %{summary}
 
-%package webdings-fonts
+%package -n wine-webdings-fonts
 Summary:       Wine Webdings font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description webdings-fonts
+%description -n wine-webdings-fonts
 %{summary}
 
-%package wingdings-fonts
+%package -n wine-wingdings-fonts
 Summary:       Wine Wingdings font family
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 
-%description wingdings-fonts
+%description -n wine-wingdings-fonts
 %{summary}
 Please note: If you want system integration for wine wingdings fonts install the
 wine-wingdings-fonts-system package.
 
-%package wingdings-fonts-system
+%package -n wine-wingdings-fonts-system
 Summary:       Wine Wingdings font family system integration
 BuildArch:     noarch
 Requires:      fontpackages-filesystem
 Requires:      wine-wingdings-fonts = %{version}-%{release}
 
-%description wingdings-fonts-system
+%description -n wine-wingdings-fonts-system
 %{summary}
 
 
-%package ldap
+%package -n wine-ldap
 Summary: LDAP support for wine
 Requires: wine-core = %{version}-%{release}
 
-%description ldap
+%description -n wine-ldap
 LDAP support for wine
 
-%package cms
+%package -n wine-cms
 Summary: Color Management for wine
 Requires: wine-core = %{version}-%{release}
 
-%description cms
+%description -n wine-cms
 Color Management for wine
 
-%package twain
+%package -n wine-twain
 Summary: Twain support for wine
 Requires: wine-core = %{version}-%{release}
 %ifarch %{ix86}
@@ -648,10 +662,10 @@ Requires: sane-backends-libs(x86-64)
 Requires: sane-backends-libs
 %endif
 
-%description twain
+%description -n wine-twain
 Twain support for wine
 
-%package capi
+%package -n wine-capi
 Summary: ISDN support for wine
 Requires: wine-core = %{version}-%{release}
 %if 0%{?fedora} <= 30
@@ -666,53 +680,53 @@ Requires:       isdn4k-utils
 %endif
 %endif
 
-%description capi
+%description -n wine-capi
 ISDN support for wine
 
-%package devel
+%package -n wine-devel
 Summary: Wine development environment
 Requires: wine-core = %{version}-%{release}
 
-%description devel
+%description -n wine-devel
 Header, include files and library definition files for developing applications
 with the Wine Windows(TM) emulation libraries.
 
-%package pulseaudio
+%package -n wine-pulseaudio
 Summary: Pulseaudio support for wine
 Requires: wine-core = %{version}-%{release}
 # midi output
 Requires: wine-alsa%{?_isa} = %{version}-%{release}
 
-%description pulseaudio
+%description -n wine-pulseaudio
 This package adds a pulseaudio driver for wine.
 
-%package alsa
+%package -n wine-alsa
 Summary: Alsa support for wine
 Requires: wine-core = %{version}-%{release}
 
-%description alsa
+%description -n wine-alsa
 This package adds an alsa driver for wine.
 
 %if 0%{?fedora} >= 10 || 0%{?rhel} >= 6
-%package openal
+%package -n wine-openal
 Summary: Openal support for wine
 Requires: wine-core = %{version}-%{release}
 
-%description openal
+%description -n wine-openal
 This package adds an openal driver for wine.
 %endif
 
 %if 0%{?fedora}
-%package opencl
+%package -n wine-opencl
 Summary: OpenCL support for wine
 Requires: wine-core = %{version}-%{release}
 
-%Description opencl
+%description -n wine-opencl
 This package adds the opencl driver for wine.
 %endif
 
 %prep
-%setup -q -n wine-wayland
+%setup -q -n %{name}
 %patch511 -p1 -b.cjk
 
 %if 0%{?wine_staging}
@@ -721,8 +735,15 @@ gzip -dc %{SOURCE900} | tar -xf - --strip-components=1
 
 patches/patchinstall.sh DESTDIR="`pwd`" --all
 
+#%%patch900 -p1
+#%%patch901 -p1
+#%%patch902 -p1
+#%%patch903 -p1
+
 # fix parallelized build
 sed -i -e 's!^loader server: libs/port libs/wine tools.*!& include!' Makefile.in
+
+autoreconf -vfi
 
 %endif
 # 0%%{?wine_staging}
@@ -960,7 +981,7 @@ desktop-file-install \
   --dir=%{buildroot}%{_datadir}/applications \
   %{SOURCE300}
 
-#cp -p %%{SOURCE3} README-FEDORA
+cp -p %{SOURCE3} README-FEDORA
 
 cp -p %{SOURCE502} README-tahoma
 
@@ -1025,19 +1046,19 @@ install -p -m 0644 loader/wine.pl.UTF-8.man %{buildroot}%{_mandir}/pl.UTF-8/man1
 
 # install and validate AppData file
 mkdir -p %{buildroot}/%{_metainfodir}/
-install -p -m 0644 %{SOURCE150} %{buildroot}/%{_metainfodir}/wine.appdata.xml
-appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/wine.appdata.xml
+install -p -m 0644 %{SOURCE150} %{buildroot}/%{_metainfodir}/%{name}.appdata.xml
+appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/%{name}.appdata.xml
 
 
 %if 0%{?rhel} == 6
-%post sysvinit
+%post -n wine-sysvinit
 if [ $1 -eq 1 ]; then
 /sbin/chkconfig --add wine
 /sbin/chkconfig --level 2345 wine on
 /sbin/service wine start &>/dev/null || :
 fi
 
-%preun sysvinit
+%preun wine-sysvinit
 if [ $1 -eq 0 ]; then
 /sbin/service wine stop >/dev/null 2>&1
 /sbin/chkconfig --del wine
@@ -1045,18 +1066,18 @@ fi
 %endif
 
 %if 0%{?fedora} >= 15 || 0%{?rhel} > 6
-%post systemd
+%post -n wine-systemd
 %binfmt_apply wine.conf
 
-%postun systemd
+%postun -n wine-systemd
 if [ $1 -eq 0 ]; then
 /bin/systemctl try-restart systemd-binfmt.service
 fi
 %endif
 
-%ldconfig_post core
+%ldconfig_post wine-core
 
-%posttrans core
+%posttrans -n wine-core
 # handle upgrades for a few package updates
 %{_sbindir}/alternatives --remove 'wine-dxgi%{?_isa}' %{_libdir}/wine/wine-dxgi.dll.so
 %{_sbindir}/alternatives --remove 'wine-d3d9%{?_isa}' %{_libdir}/wine/wine-d3d9.dll
@@ -1094,7 +1115,7 @@ fi
 %{_sbindir}/alternatives --install %{_libdir}/wine/%{winepedir}/d3d11.dll \
   'wine-d3d11%{?_isa}' %{_libdir}/wine/%{winepedir}/wine-d3d11.dll 10
 
-%postun core
+%postun -n wine-core
 %{?ldconfig}
 if [ $1 -eq 0 ] ; then
 %ifarch x86_64 aarch64
@@ -1127,13 +1148,13 @@ fi
 %files
 # meta package
 
-%files core
+%files -n wine-core
 %doc ANNOUNCE
 %doc COPYING.LIB
 %doc LICENSE
 %doc LICENSE.OLD
 %doc AUTHORS
-#%%doc README-FEDORA
+%doc README-FEDORA
 %doc README
 %doc VERSION
 # do not include huge changelogs .OLD .ALPHA .BETA (#204302)
@@ -1142,6 +1163,7 @@ fi
 #%%if 0%%{?wine_staging}
 %{_bindir}/msidb
 #%%endif
+# end wayland
 %{_bindir}/winedump
 %{_libdir}/wine/%{winepedir}/explorer.exe
 %{_libdir}/wine/%{winepedir}/cabarc.exe
@@ -1215,6 +1237,7 @@ fi
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/msidb.exe
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/msiexec.exe
 %{_libdir}/wine/%{winepedir}/net.exe
 %{_libdir}/wine/%{winepedir}/netstat.exe
@@ -1283,6 +1306,9 @@ fi
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-console-l1-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-console-l1-2-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-console-l2-1-0.dll
+# wayland
+%{_libdir}/wine/%{winepedir}/api-ms-win-core-console-l3-2-0.dll
+# end wayland
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-crt-l1-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-crt-l2-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-datetime-l1-1-0.dll
@@ -1295,6 +1321,9 @@ fi
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-errorhandling-l1-1-1.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-errorhandling-l1-1-2.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-errorhandling-l1-1-3.dll
+# wayland
+%{_libdir}/wine/%{winepedir}/api-ms-win-core-featurestaging-l1-1-0.dll
+# end wayland
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-fibers-l1-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-fibers-l1-1-1.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-file-l1-1-0.dll
@@ -1321,6 +1350,9 @@ fi
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-kernel32-legacy-l1-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-kernel32-legacy-l1-1-1.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-kernel32-legacy-l1-1-2.dll
+# wayland
+%{_libdir}/wine/%{winepedir}/api-ms-win-core-kernel32-legacy-l1-1-5.dll
+# end wayland
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-kernel32-private-l1-1-1.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-libraryloader-l1-1-0.dll
 %{_libdir}/wine/%{winepedir}/api-ms-win-core-libraryloader-l1-1-1.dll
@@ -1533,7 +1565,6 @@ fi
 %{_libdir}/wine/%{winepedir}/concrt140.dll
 %{_libdir}/wine/%{winepedir}/connect.dll
 %{_libdir}/wine/%{winepedir}/credui.dll
-%{_libdir}/wine/%{winesodir}/crtdll.so
 %{_libdir}/wine/%{winepedir}/crtdll.dll
 %{_libdir}/wine/%{winesodir}/crypt32.so
 %{_libdir}/wine/%{winepedir}/crypt32.dll
@@ -1597,6 +1628,8 @@ fi
 %{_libdir}/wine/%{winepedir}/dpnaddr.dll
 %{_libdir}/wine/%{winepedir}/dpnet.dll
 %{_libdir}/wine/%{winepedir}/dpnhpast.dll
+%{_libdir}/wine/%{winepedir}/dpnhupnp.dll
+%{_libdir}/wine/%{winesodir}/dpnhupnp.dll.so
 %{_libdir}/wine/%{winepedir}/dpnlobby.dll
 %{_libdir}/wine/%{winepedir}/dpvoice.dll
 %{_libdir}/wine/%{winepedir}/dpwsockx.dll
@@ -1619,6 +1652,7 @@ fi
 # wayland
 #%%{_libdir}/wine/%%{winepedir}/dxgkrnl.sys
 #%%{_libdir}/wine/%%{winepedir}/dxgmms1.sys
+# end wayland
 %{_libdir}/wine/%{winepedir}/dxva2.dll
 %{_libdir}/wine/%{winepedir}/esent.dll
 %{_libdir}/wine/%{winepedir}/evr.dll
@@ -1747,6 +1781,7 @@ fi
 %{_libdir}/wine/%{winepedir}/l3codeca.acm
 %{_libdir}/wine/%{winesodir}/l3codeca.acm.so
 %endif
+%{_libdir}/wine/%{winepedir}/light.msstyles
 %{_libdir}/wine/%{winepedir}/loadperf.dll
 %{_libdir}/wine/%{winepedir}/localspl.dll
 %{_libdir}/wine/%{winepedir}/localui.dll
@@ -1831,26 +1866,17 @@ fi
 %{_libdir}/wine/%{winepedir}/msvcp120_app.dll
 %{_libdir}/wine/%{winepedir}/msvcp140.dll
 %{_libdir}/wine/%{winepedir}/msvcp140_1.dll
-%{_libdir}/wine/%{winesodir}/msvcr70.so
 %{_libdir}/wine/%{winepedir}/msvcr70.dll
-%{_libdir}/wine/%{winesodir}/msvcr71.so
 %{_libdir}/wine/%{winepedir}/msvcr71.dll
-%{_libdir}/wine/%{winesodir}/msvcr80.so
 %{_libdir}/wine/%{winepedir}/msvcr80.dll
-%{_libdir}/wine/%{winesodir}/msvcr90.so
 %{_libdir}/wine/%{winepedir}/msvcr90.dll
-%{_libdir}/wine/%{winesodir}/msvcr100.so
 %{_libdir}/wine/%{winepedir}/msvcr100.dll
-%{_libdir}/wine/%{winesodir}/msvcr110.so
 %{_libdir}/wine/%{winepedir}/msvcr110.dll
-%{_libdir}/wine/%{winesodir}/msvcr120.so
 %{_libdir}/wine/%{winepedir}/msvcr120.dll
 %{_libdir}/wine/%{winepedir}/msvcr120_app.dll
-%{_libdir}/wine/%{winesodir}/msvcrt.so
 %{_libdir}/wine/%{winepedir}/msvcrt.dll
 %{_libdir}/wine/%{winepedir}/msvcrt20.dll
 %{_libdir}/wine/%{winepedir}/msvcrt40.dll
-%{_libdir}/wine/%{winesodir}/msvcrtd.so
 %{_libdir}/wine/%{winepedir}/msvcrtd.dll
 %{_libdir}/wine/%{winepedir}/msvfw32.dll
 %{_libdir}/wine/%{winepedir}/msvidc32.dll
@@ -1875,11 +1901,15 @@ fi
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/netutils.dll
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/newdev.dll
 %{_libdir}/wine/%{winepedir}/ninput.dll
 %{_libdir}/wine/%{winepedir}/normaliz.dll
 %{_libdir}/wine/%{winepedir}/npmshtml.dll
 %{_libdir}/wine/%{winepedir}/npptools.dll
+%{_libdir}/wine/%{winepedir}/nsi.dll
+%{_libdir}/wine/%{winepedir}/nsiproxy.sys
+%{_libdir}/wine/%{winesodir}/nsiproxy.sys.so
 %{_libdir}/wine/%{winesodir}/ntdll.so
 %{_libdir}/wine/%{winepedir}/ntdll.dll
 %{_libdir}/wine/%{winepedir}/ntdsapi.dll
@@ -1972,11 +2002,13 @@ fi
 %{_libdir}/wine/%{winepedir}/snmpapi.dll
 %{_libdir}/wine/%{winepedir}/softpub.dll
 %{_libdir}/wine/%{winepedir}/spoolsv.exe
+%{_libdir}/wine/%{winepedir}/sppc.dll
 %{_libdir}/wine/%{winepedir}/srclient.dll
 # wayland
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/srvcli.dll
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/sspicli.dll
 %{_libdir}/wine/%{winepedir}/stdole2.tlb
 %{_libdir}/wine/%{winepedir}/stdole32.tlb
@@ -1991,16 +2023,17 @@ fi
 %{_libdir}/wine/%{winepedir}/tapi32.dll
 %{_libdir}/wine/%{winepedir}/taskkill.exe
 %{_libdir}/wine/%{winepedir}/taskschd.dll
+%{_libdir}/wine/%{winepedir}/tbs.dll
 %{_libdir}/wine/%{winepedir}/tdh.dll
 %{_libdir}/wine/%{winepedir}/tdi.sys
 %{_libdir}/wine/%{winepedir}/traffic.dll
 %{_libdir}/wine/%{winepedir}/tzres.dll
-%{_libdir}/wine/%{winesodir}/ucrtbase.so
 %{_libdir}/wine/%{winepedir}/ucrtbase.dll
 # wayland
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/uianimation.dll
-#5%endif
+#%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/uiautomationcore.dll
 %{_libdir}/wine/%{winepedir}/uiribbon.dll
 %{_libdir}/wine/%{winepedir}/unicows.dll
@@ -2040,14 +2073,14 @@ fi
 %{_libdir}/wine/%{winepedir}/wevtsvc.dll
 %{_libdir}/wine/%{winepedir}/wiaservc.dll
 %{_libdir}/wine/%{winepedir}/wimgapi.dll
-# wayland
-#%%{_libdir}/wine/%%{winepedir}/win32k.sys
+%{_libdir}/wine/%{winepedir}/win32u.dll
 # wayland
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/windows.gaming.input.dll
 %{_libdir}/wine/%{winepedir}/windows.globalization.dll
 %{_libdir}/wine/%{winepedir}/windows.media.speech.dll
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/windows.media.devices.dll
 %{_libdir}/wine/%{winepedir}/windowscodecs.dll
 %{_libdir}/wine/%{winesodir}/windowscodecs.so
@@ -2067,6 +2100,7 @@ fi
 # wayland
 %{_libdir}/wine/%{winepedir}/winewayland.drv
 %{_libdir}/wine/%{winesodir}/winewayland.drv.so
+# end wayland
 %{_libdir}/wine/%{winepedir}/winex11.drv
 %{_libdir}/wine/%{winesodir}/winex11.drv.so
 %{_libdir}/wine/%{winepedir}/wing32.dll
@@ -2094,13 +2128,15 @@ fi
 %{_libdir}/wine/%{winepedir}/wmphoto.dll
 %{_libdir}/wine/%{winepedir}/wnaspi32.dll
 %{_libdir}/wine/%{winesodir}/wnaspi32.dll.so
-
 # wayland
 #%%if 0%%{?wine_staging}
 %ifarch x86_64
+%{_libdir}/wine/%{winepedir}/wow64.dll
 %{_libdir}/wine/%{winepedir}/wow64cpu.dll
+%{_libdir}/wine/%{winepedir}/wow64win.dll
 %endif
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/wpc.dll
 %{_libdir}/wine/%{winepedir}/wpcap.dll
 %{_libdir}/wine/%{winesodir}/wpcap.so
@@ -2114,13 +2150,13 @@ fi
 %{_libdir}/wine/%{winepedir}/wuapi.dll
 %{_libdir}/wine/%{winepedir}/wuaueng.dll
 # wayland
+#%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/wuauserv.exe
-%if 0%{?wine_staging}
-#%%{_libdir}/wine/%%{winepedir}/wuauserv.exe
 %ifarch %{arm} aarch64
 %{_libdir}/wine/%{winesodir}/wuauserv.exe.so
 %endif
-%endif
+#%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/security.dll
 %{_libdir}/wine/%{winepedir}/sfc.dll
 %{_libdir}/wine/%{winepedir}/wineps.drv
@@ -2152,7 +2188,7 @@ fi
 %{_libdir}/wine/%{winepedir}/x3daudio1_7.dll
 %{_libdir}/wine/%{winesodir}/x3daudio1_7.dll.so
 # wayland
-##%%if 0%%{?wine_staging}
+#%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winepedir}/xactengine2_0.dll
 %{_libdir}/wine/%{winesodir}/xactengine2_0.dll.so
 %{_libdir}/wine/%{winepedir}/xactengine2_4.dll
@@ -2162,6 +2198,7 @@ fi
 %{_libdir}/wine/%{winepedir}/xactengine2_9.dll
 %{_libdir}/wine/%{winesodir}/xactengine2_9.dll.so
 #%%endif
+# end wayland
 %{_libdir}/wine/%{winepedir}/xactengine3_0.dll
 %{_libdir}/wine/%{winesodir}/xactengine3_0.dll.so
 %{_libdir}/wine/%{winepedir}/xactengine3_1.dll
@@ -2349,7 +2386,8 @@ fi
 # wayland
 #%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winesodir}/msidb.exe.so
-#5%endif
+#%%endif
+# end wayland
 %{_libdir}/wine/%{winesodir}/msiexec.exe.so
 %{_libdir}/wine/%{winesodir}/net.exe.so
 %{_libdir}/wine/%{winesodir}/netstat.exe.so
@@ -2834,6 +2872,7 @@ fi
 %{_libdir}/wine/%{winesodir}/ksproxy.ax.so
 %{_libdir}/wine/%{winesodir}/ksuser.dll.so
 %{_libdir}/wine/%{winesodir}/ktmw32.dll.so
+%{_libdir}/wine/%{winesodir}/light.msstyles.so
 %{_libdir}/wine/%{winesodir}/loadperf.dll.so
 %{_libdir}/wine/%{winesodir}/localspl.dll.so
 %{_libdir}/wine/%{winesodir}/localui.dll.so
@@ -2947,6 +2986,7 @@ fi
 %{_libdir}/wine/%{winesodir}/normaliz.dll.so
 %{_libdir}/wine/%{winesodir}/npmshtml.dll.so
 %{_libdir}/wine/%{winesodir}/npptools.dll.so
+%{_libdir}/wine/%{winesodir}/nsi.dll.so
 %{_libdir}/wine/%{winesodir}/ntdll.dll.so
 %{_libdir}/wine/%{winesodir}/ntdsapi.dll.so
 %{_libdir}/wine/%{winesodir}/ntprint.dll.so
@@ -3027,6 +3067,7 @@ fi
 %{_libdir}/wine/%{winesodir}/snmpapi.dll.so
 %{_libdir}/wine/%{winesodir}/softpub.dll.so
 %{_libdir}/wine/%{winesodir}/spoolsv.exe.so
+%{_libdir}/wine/%{winesodir}/sppc.dll.so
 %{_libdir}/wine/%{winesodir}/srclient.dll.so
 %if 0%{?wine_staging}
 %{_libdir}/wine/%{winesodir}/srvcli.dll.so
@@ -3045,6 +3086,7 @@ fi
 %{_libdir}/wine/%{winesodir}/tapi32.dll.so
 %{_libdir}/wine/%{winesodir}/taskkill.exe.so
 %{_libdir}/wine/%{winesodir}/taskschd.dll.so
+%{_libdir}/wine/%{winesodir}/tbs.dll.so
 %{_libdir}/wine/%{winesodir}/tdh.dll.so
 %{_libdir}/wine/%{winesodir}/tdi.sys.so
 %{_libdir}/wine/%{winesodir}/traffic.dll.so
@@ -3091,19 +3133,28 @@ fi
 %{_libdir}/wine/%{winesodir}/wevtsvc.dll.so
 %{_libdir}/wine/%{winesodir}/wiaservc.dll.so
 %{_libdir}/wine/%{winesodir}/wimgapi.dll.so
-%{_libdir}/wine/%{winesodir}/win32k.sys.so
-%if 0%{?wine_staging}
+# wayland
+#%%{_libdir}/wine/%%{winepedir}/win32k.sys
+# end wayland
+%{_libdir}/wine/%{winesodir}/win32u.dll.so
+# wayland
+#%%if 0%%{?wine_staging}
 %{_libdir}/wine/%{winesodir}/windows.gaming.input.dll.so
 %{_libdir}/wine/%{winesodir}/windows.globalization.dll.so
 %{_libdir}/wine/%{winesodir}/windows.media.speech.dll.so
-%endif
+#%%endif
+# end wayland
 %{_libdir}/wine/%{winesodir}/windows.media.devices.dll.so
+# wayland
+#%%{_libdir}/wine/%%{winesodir}/windows.networking.connectivity.so
+# end wayland
 %{_libdir}/wine/%{winesodir}/windowscodecs.dll.so
 %{_libdir}/wine/%{winesodir}/windowscodecsext.dll.so
 %{_libdir}/wine/%{winesodir}/winegstreamer.dll.so
 %{_libdir}/wine/%{winesodir}/winehid.sys.so
 %{_libdir}/wine/%{winesodir}/winemapi.dll.so
 %{_libdir}/wine/%{winesodir}/winevulkan.dll.so
+
 %{_libdir}/wine/%{winesodir}/wing32.dll.so
 %{_libdir}/wine/%{winesodir}/winhttp.dll.so
 %{_libdir}/wine/%{winesodir}/wininet.dll.so
@@ -3154,7 +3205,7 @@ fi
 %{_libdir}/wine/%{winesodir}/xpssvcs.dll.so
 %endif
 
-%files filesystem
+%files -n wine-filesystem
 %doc COPYING.LIB
 %dir %{_datadir}/wine
 %dir %{_datadir}/wine/gecko
@@ -3163,7 +3214,7 @@ fi
 %{_datadir}/wine/wine.inf
 %{_datadir}/wine/nls/
 
-%files common
+%files -n wine-common
 %{_bindir}/notepad
 %{_bindir}/winedbg
 %{_bindir}/winefile
@@ -3194,25 +3245,25 @@ fi
 %lang(fr) %{_mandir}/fr.UTF-8/man1/wineserver.1*
 %lang(pl) %{_mandir}/pl.UTF-8/man1/wine.1*
 
-%files fonts
+%files -n wine-fonts
 # meta package
 
 %if 0%{?wine_staging}
-%files arial-fonts
+%files -n wine-arial-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/arial*
 %endif
 #0%%{?wine_staging}
 
-%files courier-fonts
+%files -n wine-courier-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/cou*
 
-%files fixedsys-fonts
+%files -n wine-fixedsys-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/*vgafix.fon
 
-%files system-fonts
+%files -n wine-system-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/cvgasys.fon
 %{_datadir}/wine/fonts/hvgasys.fon
@@ -3228,57 +3279,57 @@ fi
 %{_datadir}/wine/fonts/vgasysr.fon
 %{_datadir}/wine/fonts/vgasyst.fon
 
-%files small-fonts
+%files -n wine-small-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/sma*
 %{_datadir}/wine/fonts/jsma*
 
-%files marlett-fonts
+%files -n wine-marlett-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/marlett.ttf
 
-%files ms-sans-serif-fonts
+%files -n wine-ms-sans-serif-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/sse*
 %if 0%{?wine_staging}
 %{_datadir}/wine/fonts/msyh.ttf
 %endif
 
-%files tahoma-fonts
+%files -n wine-tahoma-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/tahoma*ttf
 
-%files tahoma-fonts-system
+%files -n wine-tahoma-fonts-system
 %doc README-tahoma
 %{_datadir}/fonts/wine-tahoma-fonts
 %{_fontconfig_confdir}/20-wine-tahoma*conf
 %{_fontconfig_templatedir}/20-wine-tahoma*conf
 
 %if 0%{?wine_staging}
-%files times-new-roman-fonts
+%files -n wine-times-new-roman-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/times.ttf
 
-%files times-new-roman-fonts-system
+%files -n wine-times-new-roman-fonts-system
 %{_datadir}/fonts/wine-times-new-roman-fonts
 %endif
 
-%files symbol-fonts
+%files -n wine-symbol-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/symbol.ttf
 
-%files webdings-fonts
+%files -n wine-webdings-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/webdings.ttf
 
-%files wingdings-fonts
+%files -n wine-wingdings-fonts
 %doc COPYING.LIB
 %{_datadir}/wine/fonts/wingding.ttf
 
-%files wingdings-fonts-system
+%files -n wine-wingdings-fonts-system
 %{_datadir}/fonts/wine-wingdings-fonts
 
-%files desktop
+%files -n wine-desktop
 %{_datadir}/applications/wine-notepad.desktop
 %{_datadir}/applications/wine-winefile.desktop
 %{_datadir}/applications/wine-winemine.desktop
@@ -3293,23 +3344,23 @@ fi
 %{_datadir}/applications/wine-oleview.desktop
 %{_datadir}/desktop-directories/Wine.directory
 %config %{_sysconfdir}/xdg/menus/applications-merged/wine.menu
-%{_metainfodir}/wine.appdata.xml
+%{_metainfodir}/%{name}.appdata.xml
 %if 0%{?fedora} >= 10
 %{_datadir}/icons/hicolor/scalable/apps/*svg
 %endif
 
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
-%files systemd
+%files -n wine-systemd
 %config %{_binfmtdir}/wine.conf
 %endif
 
 %if 0%{?rhel} == 6
-%files sysvinit
+%files -n wine-sysvinit
 %{_initrddir}/wine
 %endif
 
 # ldap subpackage
-%files ldap
+%files -n wine-ldap
 %{_libdir}/wine/%{winesodir}/wldap32.so
 %{_libdir}/wine/%{winepedir}/wldap32.dll
 %ifarch %{arm} aarch64
@@ -3317,7 +3368,7 @@ fi
 %endif
 
 # cms subpackage
-%files cms
+%files -n wine-cms
 %{_libdir}/wine/%{winesodir}/mscms.so
 %{_libdir}/wine/%{winepedir}/mscms.dll
 %ifarch %{arm} aarch64
@@ -3325,7 +3376,7 @@ fi
 %endif
 
 # twain subpackage
-%files twain
+%files -n wine-twain
 %{_libdir}/wine/%{winepedir}/twain_32.dll
 %ifarch %{arm} aarch64
 %{_libdir}/wine/%{winesodir}/twain_32.dll.so
@@ -3334,11 +3385,11 @@ fi
 %{_libdir}/wine/%{winesodir}/sane.ds.so
 
 # capi subpackage
-%files capi
+%files -n wine-capi
 %{_libdir}/wine/%{winepedir}/capi2032.dll
 %{_libdir}/wine/%{winesodir}/capi2032.dll.so
 
-%files devel
+%files -n wine-devel
 %{_bindir}/function_grep.pl
 %{_bindir}/widl
 %{_bindir}/winebuild
@@ -3370,24 +3421,25 @@ fi
 %{_libdir}/wine/%{winesodir}/*.def
 
 
-%files pulseaudio
+%files -n wine-pulseaudio
 %{_libdir}/wine/%{winepedir}/winepulse.drv
 %{_libdir}/wine/%{winesodir}/winepulse.so
-# wayland
-#%%{_libdir}/wine/%%{winesodir}/winepulse.drv.so
+%ifarch %{arm} aarch64
+%{_libdir}/wine/%{winesodir}/winepulse.drv.so
+%endif
 
-%files alsa
+%files -n wine-alsa
 %{_libdir}/wine/%{winepedir}/winealsa.drv
 %{_libdir}/wine/%{winesodir}/winealsa.drv.so
 
 %if 0%{?fedora} >= 10 || 0%{?rhel} >= 6
-%files openal
+%files -n wine-openal
 %{_libdir}/wine/%{winepedir}/openal32.dll
 %{_libdir}/wine/%{winesodir}/openal32.dll.so
 %endif
 
 %if 0%{?fedora}
-%files opencl
+%files -n wine-opencl
 %{_libdir}/wine/%{winepedir}/opencl.dll
 %ifarch %{arm} aarch64
 %{_libdir}/wine/%{winesodir}/opencl.dll.so
@@ -3396,13 +3448,16 @@ fi
 %endif
 
 %changelog
-* Sun Jun 20 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-3
+* Sun Aug 01 2021 Patrick Laimbock <patrick@laimbock.com> - 6.13-0.1
+- update to the latest wayland branch of 6.13
+
+* Sun Jun 20 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-0.3
 - update to git rev 47bdc961a3effc4475fe845ebc6be20a6754605c
 
-* Mon Jun 14 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-2
+* Mon Jun 14 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-0.2
 - move README-Fedora out of the way to prevent install conflict
 
-* Sun Jun 13 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-1
+* Sun Jun 13 2021 Patrick Laimbock <patrick@laimbock.com> - 6.9-0.1
 - initial build of wine-wayland from
 - https://gitlab.collabora.com/alf/wine/-/tree/wayland
 - based on the wine.spec from koji (kudos to Michael)
