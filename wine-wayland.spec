@@ -27,12 +27,12 @@
 %endif
 
 # wine-wayland related
-%global gitdate     20210801
-%global commit      f50e3c49783f5f636ce44b4cca526001b2c44049
+%global gitdate     20210828
+%global commit      61270cce427ea5101b446b151c3bda536b90797a
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
-%global version     6.13
-%global release     2
+%global version     6.15
+%global release     1
 
 
 # build with wine-staging patches, see:  https://github.com/wine-staging/wine-staging
@@ -109,6 +109,7 @@ Patch901:       fsync-staging-no_alloc_handle.patch
 Patch902:       fsync_futex2.patch
 # https://bugs.winehq.org/show_bug.cgi?id=45277
 Patch903:       0010-winex11.drv-Use-XPresentPixmap-instead-of-XCopyArea-.patch
+Patch904:       wine-6.15-fix-for-BZ51596.patch
 
 %endif
 
@@ -739,6 +740,7 @@ patches/patchinstall.sh DESTDIR="`pwd`" --all
 #%%patch901 -p1
 #%%patch902 -p1
 #%%patch903 -p1
+%patch904 -p1
 
 # fix parallelized build
 sed -i -e 's!^loader server: libs/port libs/wine tools.*!& include!' Makefile.in
@@ -3451,6 +3453,10 @@ fi
 %endif
 
 %changelog
+* Sat Aug 28 2021 Patrick Laimbock <patrick@laimbock.com> - 6.15-0.1
+- update to the latest wayland branch of 6.15
+- wine-6.15-fix-for-BZ51596.patch
+
 * Sun Aug 01 2021 Patrick Laimbock <patrick@laimbock.com> - 6.13-0.2
 - enable staging
 

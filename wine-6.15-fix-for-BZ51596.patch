@@ -1,0 +1,22 @@
+Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=51596
+Signed-off-by: Torge Matthies <openglfreak at googlemail.com>
+---
+ dlls/ntdll/loader.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+index 9f126249c01..c0fd8217405 100644
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -1345,7 +1345,7 @@ static void call_tls_callbacks( HMODULE module, UINT reason )
+ static void init_builtin_dll( HMODULE module )
+ {
+     void *buffer[16];
+-    void (**funcs)(int, char **, char **) = (void *)buffer;
++    void (__attribute__ ((__sysv_abi__)) **funcs)(int, char **, char **) = (void *)buffer;
+     SIZE_T i, size;
+     NTSTATUS status;
+ 
+-- 
+2.32.0
+
