@@ -1655,6 +1655,7 @@ fi
 %{_libdir}/wine/%{winepedir}/dxgkrnl.sys
 %{_libdir}/wine/%{winepedir}/dxgmms1.sys
 %endif
+%{_libdir}/wine/%{winepedir}/dxtrans.dll
 %{_libdir}/wine/%{winepedir}/dxva2.dll
 %{_libdir}/wine/%{winepedir}/esent.dll
 %{_libdir}/wine/%{winepedir}/evr.dll
