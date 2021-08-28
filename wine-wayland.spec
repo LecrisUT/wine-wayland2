@@ -1631,7 +1631,7 @@ fi
 %{_libdir}/wine/%{winepedir}/dpnet.dll
 %{_libdir}/wine/%{winepedir}/dpnhpast.dll
 %{_libdir}/wine/%{winepedir}/dpnhupnp.dll
-%{_libdir}/wine/%{winesodir}/dpnhupnp.dll.so
+#%%{_libdir}/wine/%%{winesodir}/dpnhupnp.dll.so
 %{_libdir}/wine/%{winepedir}/dpnlobby.dll
 %{_libdir}/wine/%{winepedir}/dpvoice.dll
 %{_libdir}/wine/%{winepedir}/dpwsockx.dll
@@ -2149,7 +2149,7 @@ fi
 %{_libdir}/wine/%{winepedir}/wpcap.dll
 %{_libdir}/wine/%{winesodir}/wpcap.so
 %{_libdir}/wine/%{winepedir}/ws2_32.dll
-%{_libdir}/wine/%{winesodir}/ws2_32.dll.so
+%{_libdir}/wine/%{winesodir}/ws2_32.so
 %{_libdir}/wine/%{winepedir}/wsdapi.dll
 %{_libdir}/wine/%{winepedir}/wshom.ocx
 %{_libdir}/wine/%{winepedir}/wsnmp32.dll
