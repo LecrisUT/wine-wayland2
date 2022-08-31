@@ -27,8 +27,8 @@
 %endif
 
 # wine-wayland related
-%global gitdate     20210828
-%global commit      61270cce427ea5101b446b151c3bda536b90797a
+%global gitdate     20220819
+%global commit      39754867e5a26c9f65fb17a71d1ca560adc01b45
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 %global version     6.15
@@ -56,7 +56,7 @@ Summary:        A compatibility layer for windows applications
 
 License:        LGPLv2+
 URL:            https://gitlab.collabora.com/alf/wine/-/tree/wayland
-Source0:        https://gitlab.collabora.com/alf/wine/-/archive/wayland/wine-wayland-%{version}-git%{shortcommit}.tar.gz
+Source0:        https://gitlab.collabora.com/alf/wine/-/archive/%{commit}/wine-%{commit}.tar.gz
 
 Source1:        wine.init
 Source2:        wine.systemd
